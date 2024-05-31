@@ -367,15 +367,18 @@ open class NavigationMapView: MLNMapView, UIGestureRecognizerDelegate {
      Fired when NavigationMapView detects a tap not handled elsewhere by other gesture recognizers.
      */
     @objc func didRecieveTap(sender: UITapGestureRecognizer) {
-        guard let routes, let tapPoint = sender.point else { return }
-        
-        let waypointTest = self.waypoints(on: routes, closeTo: tapPoint) // are there waypoints near the tapped location?
-        if let selected = waypointTest?.first { // test passes
-            self.navigationMapDelegate?.navigationMapView?(self, didSelect: selected)
+        guard let routes, let tapPoint = sender.point else {
+            self.navigationMapDelegate?.navigationMapView?(self, didReceiveUnhandledTap: sender)
             return
-        } else if let routes = self.routes(closeTo: tapPoint) {
-            guard let selectedRoute = routes.first else { return }
+        }
+
+        // are there waypoints near the tapped location?
+        if let selectedWaypoint = self.waypoints(on: routes, closeTo: tapPoint)?.first {
+            self.navigationMapDelegate?.navigationMapView?(self, didSelect: selectedWaypoint)
+        } else if let selectedRoute = self.routes(closeTo: tapPoint)?.first {
             self.navigationMapDelegate?.navigationMapView?(self, didSelect: selectedRoute)
+        } else {
+            self.navigationMapDelegate?.navigationMapView?(self, didReceiveUnhandledTap: sender)
         }
     }
     
@@ -1151,7 +1154,9 @@ public protocol NavigationMapViewDelegate: AnyObject {
      - returns: An MLNStyleLayer that the map applies to the route.
      */
     @objc optional func navigationMapView(_ mapView: NavigationMapView, routeCasingStyleLayerWithIdentifier identifier: String, source: MLNSource) -> MLNStyleLayer?
-    
+
+    @objc optional func navigationMapView(_ mapView: NavigationMapView, didReceiveUnhandledTap sender: UITapGestureRecognizer)
+
     /**
       Tells the receiver that the user has selected a route by interacting with the map view.
       - parameter mapView: The NavigationMapView.
