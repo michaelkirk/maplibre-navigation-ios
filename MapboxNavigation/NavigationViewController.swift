@@ -181,6 +181,11 @@ public protocol NavigationViewControllerDelegate: VisualInstructionDelegate {
      */
     @objc(navigationViewController:roadNameAtLocation:)
     optional func navigationViewController(_ navigationViewController: NavigationViewController, roadNameAt location: CLLocation) -> String?
+
+    // MARK: - MLNMapViewDelegate pass through
+
+    // Copied from MLNMapViewDelegate - maybe we should include all the methods?
+    @objc func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle)
 }
 
 /**
@@ -681,6 +686,10 @@ extension NavigationViewController: RouteMapViewControllerDelegate {
     
     @objc public func label(_ label: InstructionLabel, willPresent instruction: VisualInstruction, as presented: NSAttributedString) -> NSAttributedString? {
         self.delegate?.label?(label, willPresent: instruction, as: presented)
+    }
+
+    @objc public func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
+        self.delegate?.mapView(mapView, didFinishLoading: style)
     }
 }
 
