@@ -19,6 +19,7 @@ let package = Package(
         .package(url: "https://github.com/flitsmeister/turf-swift", exact: "0.2.2"),
         .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution.git", from: "6.0.0"),
         .package(url: "https://github.com/ceeK/Solar.git", exact: "3.0.1"),
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/nicklockwood/SwiftFormat.git", from: "0.53.6")
     ],
     targets: [
