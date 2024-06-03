@@ -40,3 +40,15 @@ jobs:
 
       - name: Test
         run: set -o pipefail && xcodebuild test -scheme maplibre-navigation-ios -destination 'platform=iOS Simulator,OS=17.0.1,name=iPhone 15 Pro' | xcbeautify --renderer github-actions
+  docs:
+    name: Generate Documentation
+    runs-on: macos-14
+    steps:
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate Documentation
+        run: swift package generate-documentation
