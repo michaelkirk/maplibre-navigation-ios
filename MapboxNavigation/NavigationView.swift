@@ -131,7 +131,7 @@ open class NavigationView: UIView {
     }
     
     // MARK: - Lifecycle
-    
+
     convenience init(delegate: NavigationViewDelegate) {
         self.init(frame: .zero)
         self.delegate = delegate

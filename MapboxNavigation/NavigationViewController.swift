@@ -302,7 +302,7 @@ open class NavigationViewController: UIViewController {
      Toggles sending of UILocalNotification upon upcoming steps when application is in the background. Defaults to `true`.
      */
     public var sendsNotifications: Bool = true
-    
+
     /**
      If true, the map style and UI will automatically be updated given the time of day.
      */
