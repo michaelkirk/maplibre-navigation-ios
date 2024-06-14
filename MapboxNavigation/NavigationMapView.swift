@@ -224,9 +224,9 @@ open class NavigationMapView: MLNMapView, UIGestureRecognizerDelegate {
         self.resumeNotifications()
 
         let gestures = gestureRecognizers ?? []
-        mapTapGesture.requireFailure(of: gestures)
-        mapTapGesture.delegate = self
-        addGestureRecognizer(mapTapGesture)
+        self.mapTapGesture.requireFailure(of: gestures)
+        self.mapTapGesture.delegate = self
+        addGestureRecognizer(self.mapTapGesture)
     }
     
     deinit {
@@ -317,14 +317,17 @@ open class NavigationMapView: MLNMapView, UIGestureRecognizerDelegate {
         }
     }
     
-    // Track position on a frame by frame basis. Used for first location update and when resuming tracking mode
-    func enableFrameByFrameCourseViewTracking(for duration: TimeInterval) {
+    // MARK: - User Tracking
+    
+    /**
+     Track position on a frame by frame basis. Used for first location update and when resuming tracking mode.
+     Call this method when you are doing custom zoom animations, this will make sure the puck stays on the route during these animations.
+     */
+    @objc public func enableFrameByFrameCourseViewTracking(for duration: TimeInterval) {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.disableFrameByFramePositioning), object: nil)
         perform(#selector(self.disableFrameByFramePositioning), with: nil, afterDelay: duration)
         self.shouldPositionCourseViewFrameByFrame = true
     }
-    
-    // MARK: - User Tracking
     
     @objc fileprivate func disableFrameByFramePositioning() {
         self.shouldPositionCourseViewFrameByFrame = false
