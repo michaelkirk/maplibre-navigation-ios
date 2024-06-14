@@ -463,8 +463,7 @@ open class NavigationViewController: UIViewController {
         mapSubview.pinInSuperview()
         mapViewController.reportButton.isHidden = !self.showsReportFeedback
         
-        self.styleManager = StyleManager(self)
-        self.styleManager.styles = [dayStyle, nightStyle]
+        self.styleManager = StyleManager(self, dayStyle: dayStyle, nightStyle: nightStyle)
 
         if !(route.routeOptions is NavigationRouteOptions) {
             print("`Route` was created using `RouteOptions` and not `NavigationRouteOptions`. Although not required, this may lead to a suboptimal navigation experience. Without `NavigationRouteOptions`, it is not guaranteed you will get congestion along the route line, better ETAs and ETA label color dependent on congestion.")
@@ -486,6 +485,7 @@ open class NavigationViewController: UIViewController {
     
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.styleManager.ensureAppropriateStyle()
 
         if self.shouldManageApplicationIdleTimer {
             UIApplication.shared.isIdleTimerDisabled = true
@@ -739,7 +739,9 @@ extension NavigationViewController: RouteControllerDelegate {
 extension NavigationViewController: TunnelIntersectionManagerDelegate {
     public func tunnelIntersectionManager(_ manager: TunnelIntersectionManager, willEnableAnimationAt location: CLLocation) {
         self.routeController.tunnelIntersectionManager(manager, willEnableAnimationAt: location)
-        self.styleManager.applyStyle(type: .night)
+        // If we're in a tunnel at sunrise, don't let the timeOfDay timer clobber night mode
+        self.styleManager.cancelTimeOfDayTimer()
+        self.styleManager.ensureStyle(type: .night)
     }
     
     public func tunnelIntersectionManager(_ manager: TunnelIntersectionManager, willDisableAnimationAt location: CLLocation) {
