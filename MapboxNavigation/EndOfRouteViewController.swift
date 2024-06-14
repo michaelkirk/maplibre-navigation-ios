@@ -35,7 +35,6 @@ class EndOfRouteViewController: UIViewController {
         let spacerView = UIView()
         spacerView.setContentHuggingPriority(.defaultLow, for: .vertical)
         spacerView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-        spacerView.backgroundColor = .blue
         let column = UIStackView(arrangedSubviews: [self.staticYouHaveArrived, self.primaryLabel, spacerView, self.endNavigationButton])
         column.axis = .vertical
         column.alignment = .center
@@ -88,8 +87,7 @@ class EndOfRouteViewController: UIViewController {
     // MARK: - Lifecycle Methods
 
     override func loadView() {
-        self.view = EndOfRouteContentView.forAutoLayout()
-        view.backgroundColor = .white
+        self.view = EndOfRouteContentView()
         self.view.addSubview(self.column)
         self.activateLayoutConstraints()
     }
