@@ -18,11 +18,10 @@ class RouteMapViewController: UIViewController {
     var instructionsBannerView: InstructionsBannerView { self.navigationView.instructionsBannerView }
     var instructionsBannerContentView: InstructionsBannerContentView { self.navigationView.instructionsBannerContentView }
 
-    lazy var endOfRouteViewController: EndOfRouteViewController = {
-        let storyboard = UIStoryboard(name: "Navigation", bundle: .mapboxNavigation)
-        let viewController = storyboard.instantiateViewController(withIdentifier: "EndOfRouteViewController") as! EndOfRouteViewController
-        return viewController
-    }()
+    lazy var endOfRouteViewController: EndOfRouteViewController = .init(dismissHandler: { [weak self] in
+        self?.routeController.endNavigation()
+        self?.delegate?.mapViewControllerDidDismiss(self!, byCanceling: false)
+    })
 
     private enum Actions {
         static let overview: Selector = #selector(RouteMapViewController.toggleOverview(_:))
@@ -183,7 +182,6 @@ class RouteMapViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(self.applicationWillEnterForeground(notification:)), name: UIApplication.willEnterForegroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.removeTimer), name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.updateInstructionsBanner(notification:)), name: .routeControllerDidPassVisualInstructionPoint, object: self.routeController)
-        subscribeToKeyboardNotifications()
     }
 
     func suspendNotifications() {
@@ -193,7 +191,6 @@ class RouteMapViewController: UIViewController {
         NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: .routeControllerDidPassVisualInstructionPoint, object: nil)
-        unsubscribeFromKeyboardNotifications()
     }
 
     @objc func recenter(_ sender: AnyObject) {
@@ -414,11 +411,6 @@ class RouteMapViewController: UIViewController {
         self.navigationView.endOfRouteView = endOfRoute.view
         self.navigationView.constrainEndOfRoute()
         endOfRoute.didMove(toParent: self)
-
-        endOfRoute.dismissHandler = { [weak self] _, _ in
-            self?.routeController.endNavigation()
-            self?.delegate?.mapViewControllerDidDismiss(self!, byCanceling: false)
-        }
     }
 
     func unembedEndOfRoute() {
@@ -878,70 +870,6 @@ extension RouteMapViewController: StepsViewControllerDelegate {
 
         if let locationManager = routeController.locationManager as? SimulatedLocationManager {
             locationManager.speedMultiplier = Double(displayValue)
-        }
-    }
-}
-
-// MARK: - Keyboard Handling
-
-private extension RouteMapViewController {
-    func subscribeToKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(RouteMapViewController.keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(RouteMapViewController.keyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-
-    func unsubscribeFromKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-
-    @objc func keyboardWillShow(notification: NSNotification) {
-        guard self.navigationView.endOfRouteView != nil else { return }
-        guard let userInfo = notification.userInfo else { return }
-        guard let curveValue = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int else { return }
-        guard let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
-        guard let keyBoardRect = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-
-        let curve = UIView.AnimationCurve(rawValue: curveValue) ?? UIView.AnimationCurve.easeIn
-        let options = (duration: duration, curve: curve)
-        let keyboardHeight = keyBoardRect.size.height
-
-        if #available(iOS 11.0, *) {
-            navigationView.endOfRouteShowConstraint?.constant = -1 * (keyboardHeight - view.safeAreaInsets.bottom) // subtract the safe area, which is part of the keyboard's frame
-        } else {
-            self.navigationView.endOfRouteShowConstraint?.constant = -1 * keyboardHeight
-        }
-
-        let opts = UIView.AnimationOptions(curve: options.curve)
-        UIView.animate(withDuration: options.duration, delay: 0, options: opts, animations: view.layoutIfNeeded, completion: nil)
-    }
-
-    @objc func keyboardWillHide(notification: NSNotification) {
-        guard self.navigationView.endOfRouteView != nil else { return }
-        guard let userInfo = notification.userInfo else { return }
-        let curve = UIView.AnimationCurve(rawValue: userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as! Int)
-        let options = (duration: userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as! Double,
-                       curve: UIView.AnimationOptions(curve: curve!))
-
-        self.navigationView.endOfRouteShowConstraint?.constant = 0
-
-        UIView.animate(withDuration: options.duration, delay: 0, options: options.curve, animations: view.layoutIfNeeded, completion: nil)
-    }
-}
-
-private extension UIView.AnimationOptions {
-    init(curve: UIView.AnimationCurve) {
-        switch curve {
-        case .easeIn:
-            self = .curveEaseIn
-        case .easeOut:
-            self = .curveEaseOut
-        case .easeInOut:
-            self = .curveEaseInOut
-        case .linear:
-            self = .curveLinear
-        @unknown default:
-            fatalError("Unknown curve")
         }
     }
 }
