@@ -18,9 +18,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     let startButton = UIButton()
     let waypoints = [
-        CLLocation(latitude: 52.032407, longitude: 5.580310),
-        CLLocation(latitude: 52.04, longitude: 5.580310),
-        CLLocation(latitude: 51.768686, longitude: 4.6827956)
+        // Weehawken
+        // 40.7628051,-74.0252374
+//      CLLocation(latitude: 40.7628051, longitude: -74.0252374),
+        // Penn Station NYC
+        // 40.7510978,-73.9948986
+//      CLLocation(latitude: 40.7510978, longitude: -73.9948986)
+
+        // I-90 E west of Mercer Island
+        // 47.589252, -122.259082
+        CLLocation(latitude: 47.589252, longitude: -122.259082),
+
+        // I-90 E on Mercer Island
+        // 47.583333, -122.222425
+        CLLocation(latitude: 47.583333, longitude: -122.222425)
+
+//        CLLocation(latitude: 52.032407, longitude: 5.580310),
+//        CLLocation(latitude: 52.04, longitude: 5.580310),
+//        CLLocation(latitude: 51.768686, longitude: 4.6827956)
     ].map { Waypoint(location: $0) }
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
@@ -31,7 +46,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // NOTE: You will need your own tile server, MapLibre doesn't provide the server infrastructure
         // so this uses a demo style that only shows country borders
         // this is not useful to evaluate the navigation, please change accordingly
-        self.viewController = NavigationViewController(dayStyle: DayStyle(demoStyle: ()), nightStyle: NightStyle(demoStyle: ()))
+
+        self.viewController = NavigationViewController(dayStyleURL: URL(string: "https://maps.earth/tileserver/styles/basic/style.json")!)
         self.viewController.mapView.tracksUserCourse = false
         self.viewController.mapView.showsUserLocation = true
         self.viewController.mapView.centerCoordinate = self.waypoints[0].coordinate
@@ -92,8 +108,8 @@ private extension SceneDelegate {
             self.route = route
             
             let simulatedLocationManager = SimulatedLocationManager(route: route)
-            simulatedLocationManager.speedMultiplier = 2
-            
+            simulatedLocationManager.speedMultiplier = 5
+
             self.viewController.startNavigation(with: route, animated: true, locationManager: simulatedLocationManager)
         }
     }
