@@ -347,12 +347,15 @@ open class NavigationMapView: MLNMapView, UIGestureRecognizerDelegate {
             return
         }
         
-        if !self.tracksUserCourse || self.userAnchorPoint != userCourseView?.center ?? self.userAnchorPoint {
-            UIView.animate(withDuration: duration, delay: 0, options: [.curveLinear, .beginFromCurrentState], animations: {
-                self.userCourseView?.center = self.convert(location.coordinate, toPointTo: self)
-            })
+        if !self.tracksUserCourse, let userCourseView {
+            let newCenter = self.convert(location.coordinate, toPointTo: self)
+            if userCourseView.center != newCenter {
+                UIView.animate(withDuration: duration, delay: 0, options: [.curveLinear, .beginFromCurrentState], animations: {
+                    self.userCourseView?.center = newCenter
+                })
+            }
         }
-        
+
         if let userCourseView = userCourseView as? UserCourseView {
             if let customTransformation = userCourseView.update?(location: location, pitch: self.camera.pitch, direction: direction, animated: animated, tracksUserCourse: tracksUserCourse) {
                 customTransformation
